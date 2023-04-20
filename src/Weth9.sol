@@ -14,28 +14,29 @@ interface IWETH9 {
 
 /*
     1. 因為是延續 ERC-20 的操作，透過 mint 和 burn 來直接操作內部的值
+    2. 透過 ERC-20 的介面學習到可以使用 Context 去包起來常用的 global value，像是 ERC-20 有繼承 _msgSender() 能拿到 msg.sender
 */ 
 
-abstract contract Weth9 is ERC20("Wrapped Ether", "WETH"),IWETH9 {
+contract Weth9 is ERC20("Wrapped Ether", "WETH"),IWETH9 {
     
     mapping(address => uint) _balancesOf;
 
     function deposit() external payable {
         uint value = msg.value;
         require(value > 0, "Deposit amount must be greater than 0");
-        address sender = msg.sender;
-        // mint 出等值 Ether 數量的 Weth 給 sender
-        _mint(sender, value);
-        emit Deposit(sender, value);
+        address owner = _msgSender();
+        // mint 出等值 Ether 數量的 Weth 給 owner
+        _mint(owner, value);
+        emit Deposit(owner, value);
     }
 
     function withdraw(uint256 _amount) external {
     require(_amount > 0, "Withdraw amount must be greater than 0");
-        address sender = msg.sender;
-        require(_balancesOf[sender] >= _amount, "Insufficient balance");
-        // 同理，直接燒掉等值 Ether 數量的 Weth，並修改 sender 的餘額
-        _burn(sender, _amount);
-        payable(sender).transfer(_amount);
-        emit Withdraw(sender, _amount);
+        address owner = _msgSender();
+        require(_balancesOf[owner] >= _amount, "Insufficient balance");
+        // 同理，直接燒掉等值 Ether 數量的 Weth，並修改 owner 的餘額
+        _burn(owner, _amount);
+        payable(owner).transfer(_amount);
+        emit Withdraw(owner, _amount);
     }
 }
